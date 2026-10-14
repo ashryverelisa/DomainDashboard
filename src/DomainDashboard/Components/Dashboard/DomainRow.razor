@@ -1,0 +1,49 @@
+<MudTd DataLabel="Status">
+    <MudTooltip Text="@Item.State.ToText()">
+        <MudIcon Icon="@Item.State.ToIcon()" Color="@Item.State.ToColor()" aria-label="@Item.State.ToText()"/>
+    </MudTooltip>
+</MudTd>
+<MudTd DataLabel="Domain">
+    <MudLink Href="@Item.Url" Target="_blank" rel="noopener" Typo="Typo.subtitle1">@Item.DisplayName</MudLink>
+    <MudText Typo="Typo.caption" Color="Color.Secondary" HtmlTag="div">@_details</MudText>
+    @if (_problems.Count > 0)
+    {
+        <div class="d-flex flex-wrap gap-1 mt-1">
+            @foreach (var (color, text) in _problems)
+            {
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="color" Class="ma-0">@text</MudChip>
+            }
+        </div>
+    }
+</MudTd>
+<MudTd DataLabel="HTTP status">
+    @if (Item.Code is { } status)
+    {
+        <MudText Typo="Typo.body2" Color="CodeColor">@status</MudText>
+    }
+    else
+    {
+        <MudText Typo="Typo.body2" Color="Color.Error">No response</MudText>
+    }
+</MudTd>
+<MudTd DataLabel="Response time">
+    @(Item.LatencyMs is { } ms ? $"{ms} ms" : "–")
+</MudTd>
+<MudTd DataLabel="Certificate">
+    @if (!Item.Https)
+    {
+        <MudText Typo="Typo.body2" Color="Color.Secondary">HTTP only</MudText>
+    }
+    else if (Item.CertValid == false)
+    {
+        <MudText Typo="Typo.body2" Color="Color.Warning">Invalid</MudText>
+    }
+    else if (Item.CertDays is { } days)
+    {
+        <MudText Typo="Typo.body2" Color="@(CertExpiresSoon ? Color.Warning : Color.Default)">@days days</MudText>
+    }
+    else
+    {
+        @("–")
+    }
+</MudTd>

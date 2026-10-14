@@ -1,0 +1,12 @@
+h1:focus { outline: none; }
+
+.blazor-error-boundary {
+    padding: 1rem;
+    border-radius: 4px;
+    background: var(--mud-palette-error);
+    color: var(--mud-palette-error-text);
+}
+
+.blazor-error-boundary::after {
+    content: "An error has occurred.";
+}

@@ -1,0 +1,18 @@
+services:
+  domain-dashboard:
+    image: ghcr.io/ashryverelisa/domaindashboard:latest
+    container_name: domain-dashboard
+    restart: unless-stopped
+    environment:
+      Dashboard__TraefikApiUrl: http://traefik:8080
+      Dashboard__Title: Network Domains
+      Dashboard__RefreshInterval: 60      
+      Dashboard__CheckTimeout: 5
+      Dashboard__CertWarnDays: 14
+
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.domain-dashboard.rule=Host(`domains.home.lan`)
+      - traefik.http.routers.domain-dashboard.entrypoints=websecure
+      - traefik.http.routers.domain-dashboard.tls=true
+      - traefik.http.services.domain-dashboard.loadbalancer.server.port=8080

@@ -1,0 +1,79 @@
+﻿@page "/"
+
+<PageTitle>@Options.Value.Title</PageTitle>
+
+<MudStack Row Wrap="Wrap.Wrap" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudText Typo="Typo.h5">@Headline</MudText>
+    <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+        <CheckClock Updated="_data.Updated" Checking="_data.Checking" RefreshSeconds="RefreshSeconds" TimeZone="_timeZone"/>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh"
+                   Disabled="_waitingForRefresh" OnClick="@RefreshNowAsync">Check now</MudButton>
+    </MudStack>
+</MudStack>
+
+<MudGrid Spacing="3" Class="mb-4">
+    @foreach (var (state, label) in StatTiles)
+    {
+        <MudItem xs="12" sm="4">
+            <MudPaper Elevation="1" Class="pa-4 d-flex align-center gap-4">
+                <MudIcon Icon="@state.ToIcon()" Color="@state.ToColor()" Size="Size.Large"/>
+                <div>
+                    <MudText Typo="Typo.h5">@CountOf(state)</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@label</MudText>
+                </div>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+@if (_data.Error is not null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">
+        <strong>Could not update the domain list.</strong>
+        @_data.Error. Check <code>Dashboard__TraefikApiUrl</code> in docker-compose.yml; showing the last known state.
+    </MudAlert>
+}
+
+<MudTable T="DomainStatus" Items="Visible" Hover Elevation="1" Breakpoint="Breakpoint.Sm"
+          Loading="_data.Updated is null" LoadingProgressColor="Color.Primary">
+    <ToolBarContent>
+        <MudToggleGroup T="bool" @bind-Value="_problemsOnly" Size="Size.Small" CheckMark="false" Color="Color.Primary">
+            <MudToggleItem Value="false" Text="All"/>
+            <MudToggleItem Value="true" Text="Problems"/>
+        </MudToggleGroup>
+        <MudSpacer/>
+        <MudTextField T="string" @bind-Value="_query" Immediate Clearable
+                      Placeholder="Search domain, service or router" aria-label="Search"
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                      IconSize="Size.Medium" Class="mt-0 ml-4" Style="max-width: 340px"/>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh Style="width: 1%"><MudTableSortLabel SortBy="ByState">Status</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="ByDomain">Domain</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="ByCode">HTTP status</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="ByLatency">Response time</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="ByCertDays">Certificate</MudTableSortLabel></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <DomainRow Item="context" CertWarnDays="CertWarnDays"/>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText Color="Color.Secondary" Class="pa-4">
+            @if (_data.Items.Count == 0)
+            {
+                @("Traefik reports no routers with a host rule. As soon as a router with ")<code>Host(`…`)</code>@(" exists, it will show up here.")
+            }
+            else if (_problemsOnly && string.IsNullOrWhiteSpace(_query))
+            {
+                @("No problems, all domains are reachable.")
+            }
+            else
+            {
+                @("No domain matches your search.")
+            }
+        </MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText Color="Color.Secondary" Class="pa-4">Loading …</MudText>
+    </LoadingContent>
+</MudTable>
